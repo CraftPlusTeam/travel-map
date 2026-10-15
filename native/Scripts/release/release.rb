@@ -206,6 +206,10 @@ class TravelMapRelease
 
   def verify_ipa
     raise 'ipa-missing' unless File.file?(@ipa)
+    source_path = File.join(@output, 'source-sha.txt')
+    source = File.file?(source_path) ? File.read(source_path).strip : @env.fetch('TRAVELMAP_SOURCE_SHA') { raise 'missing-TRAVELMAP_SOURCE_SHA' }
+    raise 'invalid-source-sha' unless source.match?(/\A[0-9a-f]{40}\z/)
+    profile_expiration = nil
     Dir.mktmpdir('verify-', @output) do |temporary|
       _, _, status = Open3.capture3('/usr/bin/ditto', '-x', '-k', @ipa, temporary)
       raise 'ipa-extract-failed' unless status.success?
@@ -225,8 +229,9 @@ class TravelMapRelease
       provision = plist(xml_path)
       entitlements = provision.fetch('Entitlements')
       raise 'ipa-not-app-store-distribution' unless provision['TeamIdentifier'] == [TEAM] && entitlements['application-identifier'] == "#{TEAM}.#{BUNDLE}" && entitlements['get-task-allow'] == false && !provision.key?('ProvisionedDevices') && provision['ProvisionsAllDevices'] != true && Time.parse(provision.fetch('ExpirationDate')) > Time.now
+      profile_expiration = provision.fetch('ExpirationDate')
     end
-    data = {bundle: BUNDLE, team: TEAM, version: @version, build: @build, sha256: Digest::SHA256.file(@ipa).hexdigest}
+    data = {source: source, bundle: BUNDLE, team: TEAM, version: @version, build: @build, sha256: Digest::SHA256.file(@ipa).hexdigest, signatureVerified: true, appStoreProfileVerified: true, profileExpiration: profile_expiration}
     File.write(File.join(@output, 'verified-ipa.json'), JSON.pretty_generate(data) + "\n")
     puts JSON.generate(data)
     data

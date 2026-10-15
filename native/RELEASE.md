@@ -47,7 +47,7 @@ ruby Scripts/release/release.rb verify
 
 `archive` はApple Developmentによる自動署名Archiveを作り、Bundle / Team / version / build・署名・プライバシーマニフェストを確認します。`export` は `method=app-store-connect` で配布IPAを書き出します。`destination=export` のため、この段階ではアップロードしません。
 
-`verify` はIPAのBundle / Team / version / build、codesign、App Store用プロファイル、プロファイル有効期限とSHA-256を確認し、保存先の `verified-ipa.json` へ結果を書きます。開発用の `ProvisionedDevices`、`get-task-allow=true`、`XTL-`識別子や別TeamのIPAは通しません。既存のArchiveやIPAを暗黙に上書きせず、次回配布には新しいbuild番号を使います。
+`verify` はIPAのBundle / Team / version / build、codesign、App Store用プロファイル、プロファイル有効期限とSHA-256を確認し、Archive時のsource SHAと一緒に保存先の `verified-ipa.json` へ結果を書きます。開発用の `ProvisionedDevices`、`get-task-allow=true`、`XTL-`識別子や別TeamのIPAは通しません。既存のArchiveやIPAを暗黙に上書きせず、次回配布には新しいbuild番号を使います。
 
 ## アップロードとApple側の処理確認
 
