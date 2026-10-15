@@ -1,76 +1,44 @@
-# travel-map
+# Travel Map
 
-場所を主語にした、地図が主役の絶景・穴場発見アプリ（MVP）。
-コンセプトは [docs/concept.md](docs/concept.md) を参照。
+場所を主語にした、地図が主役の景色発見・旅行記録アプリです。
 
-## 構成
+[元のリポジトリ](https://github.com/yh1110/travel-map) の履歴を保持してCraftPlusTeamへforkし、**SwiftUIのiOS版**を `native/` に追加しています。元のReact Native版は引き続きルートに残しています。ビジョンは [docs/concept.md](docs/concept.md) を参照してください。
 
-- **アプリ**: Expo (React Native) + TypeScript
-- **地図**: [MapLibre React Native](https://github.com/maplibre/maplibre-react-native) + [OpenFreeMap](https://openfreemap.org)（API キー不要）
-- **バックエンド**: Supabase（ローカル開発は Supabase CLI + Docker）
+## SwiftUI版（iPhone / iPad）
 
-### 画面
+- SwiftUI + MapKit + CoreLocation。iOS 17以降。
+- 全画面マップ、写真ピン、100m以内の写真集約、詳細シート、期間別の写真一覧、標準横スワイプ。
+- カメラで撮影した景色・撮影場所・日時・タイトルを端末内へ永続保存。
+- 公開Supabaseを設定すれば既存の公開マップの閲覧・投稿にも接続。未設定時はサンプル閲覧と端末の記録を利用可能。
+- 端末内の記録と公開投稿の保存先を明示。サンプル写真は実際の撮影場所と一致しない体験用データです。
 
-| 画面 | 内容 |
-|---|---|
-| ホーム | 全画面マップ。投稿が「写真サムネイル + 撮影方向の扇形」ピンで表示される |
-| 投稿 1/3 | 地図の十字中心で「撮った一点」を指定（現在地ボタンあり） |
-| 投稿 2/3 | 北上固定の地図上で撮影方向（bearing）をスライダー / 端末コンパスで指定 |
-| 投稿 3/3 | 写真選択（EXIF から撮影日時を取得）・タイトル入力・投稿 |
-| スポット詳細 | 写真・撮影方向・撮影日時・ミニマップ（方向ピン付き） |
+セットアップ・ビルド・テストは [native/README.md](native/README.md)、配布は [native/RELEASE.md](native/RELEASE.md) を参照してください。
 
-## セットアップ
+```sh
+cd native
+swift Scripts/generate-icon.swift
+xcodegen generate
+open TravelMap.xcodeproj
+```
 
-### 1. 依存関係
+## 元のReact Native版
+
+Expo + TypeScript製です。iOSはApple Maps、AndroidはMapLibre + OpenFreeMapを使います。ネイティブモジュールがあるためExpo Goでは動きません。
 
 ```sh
 npm install
-```
-
-### 2. ローカル Supabase（要 Docker）
-
-```sh
 npx supabase start
-```
-
-初回はイメージ取得に時間がかかる。起動時に migrations（spots テーブル・RLS・photos バケット）と seed（デモ投稿5件）が適用される。
-
-### 3. 環境変数
-
-```sh
 cp .env.example .env
+# npx supabase status のURL・anon keyを.envへ設定
+npx expo run:ios
 ```
 
-`npx supabase status` の出力から `API URL` と `anon key` を `.env` に設定する。
+実機からローカルSupabaseへ接続する場合は、`.env`のURLをMacのLAN IPにしてMetroを再起動します。`127.0.0.1`は実機自身を指すため使えません。TestFlightでは公開HTTPSのバックエンドが必要です。
 
-- シミュレータ: `http://127.0.0.1:54321` のままで OK
-- 実機: `127.0.0.1` を Mac の LAN IP（例 `http://192.168.x.x:54321`）に置き換える
+最新版 `main` の投稿フローはカメラ → 現在地 → タイトル → 投稿です。初期版の撮影方向入力は廃止済みです。検索やPUBLIC/PRIVATE切替など、一部のUIは未接続のままです。
 
-### 4. アプリ起動
+## Supabase
 
-MapLibre はネイティブモジュールのため **Expo Go では動かない**。dev build で起動する:
+`supabase/migrations/` と `supabase/seed.sql` を保持しています。
 
-```sh
-npx expo run:ios      # または run:android
-```
-
-## 開発コマンド
-
-| コマンド | 内容 |
-|---|---|
-| `npm run typecheck` | TypeScript 型チェック |
-| `npx supabase db reset` | ローカル DB をマイグレーション + seed で作り直す |
-| `npx supabase stop` | ローカル Supabase 停止 |
-
-## データモデル
-
-`public.spots` — 「地図上の一点」が投稿の起点（後付けタグの構造的排除）:
-
-| カラム | 説明 |
-|---|---|
-| `lat` / `lng` | 撮影地点（必須・投稿の第一ステップ） |
-| `bearing` | 撮影方向（度、真北から時計回り 0-360） |
-| `photo_path` | photos バケットのパス（seed は絶対 URL） |
-| `taken_at` | 撮影日時（EXIF 由来、時間的臨場感） |
-
-閲覧は誰でも（anon）、投稿は匿名認証ユーザー（開放型）。
+`spots` は `id`、`created_at`、`user_id`、`title`、`lat`、`lng`、`photo_path`、`taken_at` を持ちます。閲覧は公開、投稿は匿名認証ユーザーです。写真は公開 `photos` バケットへ保存します。非公開クラウド投稿のスキーマは未実装です。

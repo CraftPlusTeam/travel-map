@@ -1,0 +1,37 @@
+name: iOS
+on:
+  pull_request:
+    branches: [main]
+    paths: ['native/**', '.github/workflows/ios.yml']
+  push:
+    branches: [main, 'feature/issue-*-*']
+    paths: ['native/**', '.github/workflows/ios.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  swift-ios:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Swift core
+        working-directory: native
+        run: swift test
+      - name: Install XcodeGen if needed
+        run: command -v xcodegen || brew install xcodegen
+      - name: Generate Xcode project and app icon
+        working-directory: native
+        run: |
+          swift Scripts/generate-icon.swift
+          xcodegen generate
+      - name: Build iOS app without signing
+        working-directory: native
+        run: >-
+          xcodebuild -project TravelMap.xcodeproj -scheme TravelMap
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath .build-output/DerivedData
+          CODE_SIGNING_ALLOWED=NO build

@@ -40,3 +40,16 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Swift / Xcode (native SwiftUI app)
+native/.build/
+native/.swiftpm/
+native/DerivedData/
+native/.build-output/
+native/.signing/
+native/Config/Local.xcconfig
+*.xcuserstate
+xcuserdata/
+*.xcarchive/
+*.ipa
+*.xcresult/

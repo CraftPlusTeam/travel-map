@@ -1,0 +1,86 @@
+name: TravelMap
+options:
+  bundleIdPrefix: com.craftplusteam
+  deploymentTarget:
+    iOS: '17.0'
+  xcodeVersion: '26.3'
+packages:
+  TravelMapCore:
+    path: .
+configs:
+  Debug: debug
+  Release: release
+settings:
+  base:
+    DEVELOPMENT_TEAM: BTYVH3R392
+    SWIFT_VERSION: '5.0'
+    MARKETING_VERSION: '1.0.0'
+    CURRENT_PROJECT_VERSION: '1'
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    SUPPORTED_PLATFORMS: 'iphoneos iphonesimulator'
+    SUPPORTS_MACCATALYST: NO
+    SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+    SUPABASE_URL: ''
+    SUPABASE_ANON_KEY: ''
+targets:
+  TravelMap:
+    type: application
+    platform: iOS
+    sources: [TravelMap]
+    configFiles:
+      Debug: Config/App.xcconfig
+      Release: Config/App.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.craftplusteam.travelmap
+        TARGETED_DEVICE_FAMILY: '1,2'
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: NO
+    info:
+      path: TravelMap/Info.plist
+      properties:
+        CFBundleDisplayName: Travel Map
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UIApplicationSupportsIndirectInputEvents: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        NSCameraUsageDescription: いま見ている景色を撮影して、地図に記録するためにカメラを使います。
+        NSLocationWhenInUseUsageDescription: 現在地の表示と、景色を撮影した場所の記録に使います。
+        ITSAppUsesNonExemptEncryption: false
+        SupabaseURL: $(SUPABASE_URL)
+        SupabaseAnonKey: $(SUPABASE_ANON_KEY)
+    dependencies:
+      - package: TravelMapCore
+  TravelMapTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [TravelMapTests]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.craftplusteam.travelmap.tests
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: TravelMap
+  TravelMapUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [TravelMapUITests]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.craftplusteam.travelmap.uitests
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: TravelMap
+schemes:
+  TravelMap:
+    build:
+      targets:
+        TravelMap: all
+    test:
+      targets: [TravelMapTests, TravelMapUITests]
+      gatherCoverageData: true
+    archive:
+      config: Release
