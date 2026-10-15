@@ -70,4 +70,18 @@ ruby Scripts/release/release.rb status
 
 Issue / PRにはsource commit、Xcode / SDK、version / build、IPA SHA-256、アップロード結果、Apple側の処理状態と未検証事項を記録します。認証ID・JWT・秘密鍵・Cookie・rawな署名診断ファイルは載せません。ツール実行ログは認証値を除去しますが、配布物やrawなXcode診断の公開には使わず、必要な結果だけ抜粋します。
 
-配布状況は [Issue #3](https://github.com/CraftPlusTeam/travel-map/issues/3) に記録します。
+## 2026-10-16 の署名ビルド
+
+| 項目 | 確認結果 |
+| --- | --- |
+| アプリsource | `65259b6626a590ada9ee8f6c73a8785de7c2de8e` |
+| Xcode / SDK | Xcode 26.3 / iOS 26.2 |
+| version / build | `1.0.0` / `1` |
+| Archive / Export | 両方成功。App Store向けIPAを書き出し済み |
+| IPA SHA-256 | `e04fc1ce249d43a18b42ffa84da6f10d34151642cb5639be4b80a83b49edd0ea` |
+| 検証 | Bundle / Team / version / build、codesign strict、App Storeプロファイル、PrivacyInfo、固定ソース20ファイルのSHA一致 |
+| App Storeプロファイル期限 | `2027-07-10T11:00:24Z` |
+
+配布物と `verified-ipa.json` はMacの `~/codex-install/travel-map-release-issue3/artifacts/1.0.0-1-65259b6/` に保持しています。署名用の一時Keychainとは別の保存先です。
+
+この検証時点では初回App Store Connect appレコードが未登録のため、アップロードは未実施です。TestFlightへの配布は完了していません。登録後は同じIPAのSHAとApp情報を再照合して `upload` → `status` を進めます。最新の配布状況は [Issue #3](https://github.com/CraftPlusTeam/travel-map/issues/3) に記録します。
