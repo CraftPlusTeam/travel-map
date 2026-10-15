@@ -15,7 +15,7 @@ concurrency:
 jobs:
   swift-ios:
     runs-on: macos-15
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Test Swift core
@@ -40,17 +40,34 @@ jobs:
         run: |
           simulator_id=$(xcrun simctl list devices available --json | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')
           test -n "$simulator_id" && test "$simulator_id" != null
+          runtime_id=$(xcrun simctl list devices available --json | jq -r --arg id "$simulator_id" '.devices | to_entries[] | select(any(.value[]; .udid == $id)) | .key')
+          printf 'TRAVELMAP_SIM_RUNTIME=%s\n' "$runtime_id" >> "$GITHUB_ENV"
           xcodebuild -project TravelMap.xcodeproj -scheme TravelMap \
             -destination "platform=iOS Simulator,id=$simulator_id" \
             -destination-timeout 120 -parallel-testing-enabled NO \
             -derivedDataPath .build-output/DerivedData \
             -resultBundlePath .build-output/UITests.xcresult \
             CODE_SIGNING_ALLOWED=NO test
+      - name: Check compact phone and tablet layouts
+        working-directory: native
+        run: |
+          for device_type in iPhone-SE-3rd-generation iPad-10th-generation; do
+            simulator_id=$(xcrun simctl create "TravelMap-$device_type" "com.apple.CoreSimulator.SimDeviceType.$device_type" "$TRAVELMAP_SIM_RUNTIME")
+            xcodebuild -project TravelMap.xcodeproj -scheme TravelMap \
+              -destination "platform=iOS Simulator,id=$simulator_id" \
+              -destination-timeout 120 -parallel-testing-enabled NO \
+              -derivedDataPath .build-output/DerivedData \
+              -resultBundlePath ".build-output/$device_type.xcresult" \
+              -only-testing:TravelMapUITests/TravelMapUITests/testLandscapeDarkModeMapControls \
+              -only-testing:TravelMapUITests/TravelMapUITests/testLocalModeAndPrivacyInformationWithLargeText \
+              CODE_SIGNING_ALLOWED=NO test
+            xcrun simctl shutdown "$simulator_id"
+          done
       - name: Save test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ios-test-results
-          path: native/.build-output/UITests.xcresult
+          path: native/.build-output/*.xcresult
           if-no-files-found: ignore
           retention-days: 7

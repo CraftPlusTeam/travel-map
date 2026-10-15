@@ -41,6 +41,9 @@ struct MapScreen: View {
             if store.isLoading {
                 ProgressView("景色を読み込んでいます").padding(12).background(.regularMaterial, in: Capsule())
                     .padding(.top, 120)
+            } else if locating {
+                ProgressView("現在地を確認しています…").padding(12).background(.regularMaterial, in: Capsule())
+                    .padding(.top, 120)
             }
         }
         .sheet(item: $selectedGroup) { group in
