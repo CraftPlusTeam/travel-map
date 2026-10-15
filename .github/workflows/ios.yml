@@ -61,7 +61,6 @@ jobs:
               -only-testing:TravelMapUITests/TravelMapUITests/testLandscapeDarkModeMapControls \
               -only-testing:TravelMapUITests/TravelMapUITests/testLocalModeAndPrivacyInformationWithLargeText \
               CODE_SIGNING_ALLOWED=NO test
-            xcrun simctl shutdown "$simulator_id"
           done
       - name: Save test results
         if: always()
@@ -69,5 +68,6 @@ jobs:
         with:
           name: ios-test-results
           path: native/.build-output/*.xcresult
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7

@@ -269,7 +269,8 @@ struct PhotoMarker: View {
                 .padding(3).background(.background, in: RoundedRectangle(cornerRadius: 16))
                 .overlay(alignment: .topTrailing) {
                     if group.spots.count > 1 {
-                        Text("\(group.spots.count)").font(.caption2.bold()).foregroundStyle(.white)
+                        Text("\(group.spots.count)").font(.caption2.bold())
+                            .foregroundStyle(Color(uiColor: .systemBackground))
                             .padding(5).background(Theme.accent, in: Circle()).offset(x: 6, y: -6)
                     }
                 }
