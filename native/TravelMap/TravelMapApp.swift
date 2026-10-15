@@ -8,7 +8,13 @@ struct TravelMapApp: App {
         WindowGroup {
             MapScreen(store: store)
                 .tint(Theme.accent)
+                .preferredColorScheme(testingColorScheme)
         }
+    }
+
+    private var testingColorScheme: ColorScheme? {
+        let arguments = ProcessInfo.processInfo.arguments
+        return arguments.contains("-ui-testing") && arguments.contains("-ui-testing-dark") ? .dark : nil
     }
 }
 

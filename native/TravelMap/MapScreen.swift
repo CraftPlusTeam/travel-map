@@ -8,6 +8,7 @@ struct MapScreen: View {
     @ObservedObject var store: AppStore
     @StateObject private var location = LocationService()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var position: MapCameraPosition = .region(Self.japan)
     @State private var selectedGroup: SpotGroup?
     @State private var showsLibrary = false
@@ -76,15 +77,20 @@ struct MapScreen: View {
     private var header: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
-                Image(systemName: "map.fill").font(.title2).foregroundStyle(Theme.accent)
-                    .accessibilityHidden(true)
+                if !dynamicTypeSize.isAccessibilitySize {
+                    Image(systemName: "map.fill").font(.system(size: 24)).foregroundStyle(Theme.accent)
+                        .accessibilityHidden(true)
+                }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Travel Map").font(.title2.bold())
-                    Text("場所から、景色に出会う。").font(.caption).foregroundStyle(.secondary)
+                    Text("Travel Map").font(dynamicTypeSize.isAccessibilitySize ? .headline : .title2)
+                        .bold().fixedSize(horizontal: false, vertical: true)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Text("場所から、景色に出会う。").font(.caption).foregroundStyle(.secondary)
+                    }
                 }
                 Spacer(minLength: 4)
                 Button { showsInfo = true } label: {
-                    Image(systemName: "info.circle").font(.title3).frame(width: 44, height: 44)
+                    Image(systemName: "info.circle").font(.system(size: 22)).frame(width: 44, height: 44)
                 }
                 .accessibilityLabel("Travel Mapについて")
                 .accessibilityIdentifier("information")
@@ -102,7 +108,7 @@ struct MapScreen: View {
 
     private var bottomControls: some View {
         VStack(spacing: 12) {
-            if store.scope == .journal && store.journalSpots.isEmpty {
+            if store.scope == .journal && store.journalSpots.isEmpty && !dynamicTypeSize.isAccessibilitySize {
                 Label("撮った景色を、この端末の地図に。", systemImage: "lock.shield")
                     .font(.subheadline).padding(14)
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
@@ -126,7 +132,7 @@ struct MapScreen: View {
                     Button { Task { await locate() } } label: {
                         Group {
                             if locating { ProgressView() }
-                            else { Image(systemName: "location.fill").font(.title3) }
+                            else { Image(systemName: "location.fill").font(.system(size: 22)) }
                         }
                         .frame(width: 52, height: 52)
                         .background(.regularMaterial, in: Circle())
@@ -135,7 +141,7 @@ struct MapScreen: View {
                     .accessibilityLabel("現在地へ移動")
                     .accessibilityIdentifier("locate")
                     Button { Task { await openCamera() } } label: {
-                        Image(systemName: "camera.fill").font(.title2)
+                        Image(systemName: "camera.fill").font(.system(size: 24))
                             .foregroundStyle(Color(uiColor: .systemBackground))
                             .frame(width: 64, height: 64)
                             .background(Theme.accent, in: Circle())
@@ -180,15 +186,22 @@ struct MapScreen: View {
                     }.accessibilityIdentifier("spot-row-\(group.id)")
                 }
                 if store.groups.isEmpty {
-                    ContentUnavailableView("まだ記録がありません", systemImage: "camera",
-                                           description: Text("カメラボタンから、最初の景色を記録しましょう。"))
+                    VStack(alignment: .leading, spacing: 16) {
+                        Image(systemName: "camera").font(.system(size: 28)).foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                        Text("まだ記録がありません").font(.headline)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text("カメラボタンから、最初の景色を記録しましょう。")
+                            .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    }.padding(.vertical, 12)
                 }
             }
             .navigationTitle(store.scope == .journal ? "端末の記録" : "景色の一覧")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("閉じる") { showsLibrary = false } } }
             .refreshable { await store.reload() }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large])
         .presentationDragIndicator(.visible)
     }
 

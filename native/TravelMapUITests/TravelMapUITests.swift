@@ -52,12 +52,18 @@ final class TravelMapUITests: XCTestCase {
     }
 
     func testLandscapeDarkModeMapControls() {
-        let app = launch(extra: ["-AppleInterfaceStyle", "Dark"])
+        let app = launch(extra: ["-ui-testing-dark"])
         XCUIDevice.shared.orientation = .landscapeLeft
         defer { XCUIDevice.shared.orientation = .portrait }
+        let rotated = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            app.frame.width > app.frame.height
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [rotated], timeout: 10), .completed)
         XCTAssertTrue(app.buttons["capture"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.buttons["capture"].isHittable)
         XCTAssertTrue(app.buttons["information"].isHittable)
+        // Let the system finish its rotation transition before retaining visual evidence.
+        Thread.sleep(forTimeInterval: 1)
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "landscape-dark"
         screenshot.lifetime = .keepAlways
