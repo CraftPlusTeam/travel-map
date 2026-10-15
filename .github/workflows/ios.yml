@@ -4,7 +4,7 @@ on:
     branches: [main]
     paths: ['native/**', '.github/workflows/ios.yml']
   push:
-    branches: [main, 'feature/issue-*-*']
+    branches: [main]
     paths: ['native/**', '.github/workflows/ios.yml']
   workflow_dispatch:
 permissions:
@@ -35,3 +35,22 @@ jobs:
           -destination 'generic/platform=iOS Simulator'
           -derivedDataPath .build-output/DerivedData
           CODE_SIGNING_ALLOWED=NO build
+      - name: Test device storage and native UI
+        working-directory: native
+        run: |
+          simulator_id=$(xcrun simctl list devices available --json | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')
+          test -n "$simulator_id" && test "$simulator_id" != null
+          xcodebuild -project TravelMap.xcodeproj -scheme TravelMap \
+            -destination "platform=iOS Simulator,id=$simulator_id" \
+            -destination-timeout 120 -parallel-testing-enabled NO \
+            -derivedDataPath .build-output/DerivedData \
+            -resultBundlePath .build-output/UITests.xcresult \
+            CODE_SIGNING_ALLOWED=NO test
+      - name: Save test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results
+          path: native/.build-output/UITests.xcresult
+          if-no-files-found: ignore
+          retention-days: 7

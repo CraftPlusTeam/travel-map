@@ -16,6 +16,10 @@ final class LocalJournal {
         self.metadataURL = self.directory.appendingPathComponent("spots.json")
         try fileManager.createDirectory(at: self.directory, withIntermediateDirectories: true,
                                         attributes: [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication])
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        var journalDirectory = self.directory
+        try journalDirectory.setResourceValues(values)
     }
 
     func load() throws -> [Spot] {
@@ -27,7 +31,7 @@ final class LocalJournal {
 
     func save(title: String, latitude: Double, longitude: Double, takenAt: Date, jpegData: Data) throws -> Spot {
         let title = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard (1...100).contains(title.count), latitude.isFinite, longitude.isFinite,
+        guard (1...100).contains(title.unicodeScalars.count), latitude.isFinite, longitude.isFinite,
               (-90...90).contains(latitude), (-180...180).contains(longitude),
               !jpegData.isEmpty, jpegData.count <= 10 * 1_024 * 1_024 else {
             throw JournalError.invalidRecord
@@ -58,7 +62,8 @@ final class LocalJournal {
         // A saved filename is never allowed to escape the journal directory.
         guard !path.contains("/"), !path.contains("\\"), path.hasSuffix(".jpg"),
               UUID(uuidString: String(path.dropLast(4))) != nil else { return nil }
-        return directory.appendingPathComponent(path)
+        let url = directory.appendingPathComponent(path)
+        return fileManager.fileExists(atPath: url.path) ? url : nil
     }
 }
 

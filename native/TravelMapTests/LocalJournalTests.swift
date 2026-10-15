@@ -12,6 +12,7 @@ final class LocalJournalTests: XCTestCase {
         let record = try journal.save(title: "  旅の景色  ", latitude: 35.3, longitude: 139.5,
                                       takenAt: Date(timeIntervalSince1970: 1_700_000_000), jpegData: bytes)
         let reopened = try LocalJournal(directory: directory)
+        XCTAssertEqual(try directory.resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, true)
         let loaded = try reopened.load()
         XCTAssertEqual(loaded.count, 1)
         XCTAssertEqual(loaded.first?.id, record.id)

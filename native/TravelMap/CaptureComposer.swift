@@ -19,6 +19,7 @@ struct CaptureComposer: View {
     @State private var submissionError: String?
 
     private var trimmedTitle: String { title.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private var titleLength: Int { trimmedTitle.unicodeScalars.count }
     var body: some View {
         NavigationStack {
             Form {
@@ -31,8 +32,8 @@ struct CaptureComposer: View {
                     TextField("タイトル", text: $title, axis: .vertical)
                         .textInputAutocapitalization(.sentences)
                         .accessibilityIdentifier("capture-title")
-                    Text("\(trimmedTitle.count) / 100文字")
-                        .font(.caption).foregroundStyle(trimmedTitle.count > 100 ? .red : .secondary)
+                    Text("\(titleLength) / 100文字")
+                        .font(.caption).foregroundStyle(titleLength > 100 ? .red : .secondary)
                 }
                 Section("撮影場所") {
                     Label(String(format: "緯度 %.5f / 経度 %.5f", draft.coordinate.latitude, draft.coordinate.longitude),
@@ -74,7 +75,7 @@ struct CaptureComposer: View {
                             Spacer()
                         }.frame(minHeight: 44)
                     }
-                    .disabled(store.isSaving || trimmedTitle.isEmpty || trimmedTitle.count > 100)
+                    .disabled(store.isSaving || trimmedTitle.isEmpty || titleLength > 100)
                     .accessibilityIdentifier("save-capture")
                 }
             }
@@ -86,7 +87,7 @@ struct CaptureComposer: View {
                 }
             }
         }
-        .onAppear { title = String(draft.suggestedTitle.prefix(100)) }
+        .onAppear { title = String(String.UnicodeScalarView(draft.suggestedTitle.unicodeScalars.prefix(100))) }
     }
 }
 
