@@ -16,7 +16,7 @@ struct MapScreen: View {
     @State private var showsCamera = false
     @State private var locating = false
     @State private var draft: CaptureDraft?
-    @State private var pendingImage: UIImage?
+    @State private var pendingPhoto: CapturedPhoto?
     private static let japan = MKCoordinateRegion(center: .init(latitude: 37.5, longitude: 137.5),
                                                  span: .init(latitudeDelta: 20, longitudeDelta: 20))
 
@@ -53,8 +53,8 @@ struct MapScreen: View {
         .sheet(isPresented: $showsLibrary) { library }
         .sheet(isPresented: $showsInfo) { InformationView(isSample: store.isSample) }
         .fullScreenCover(isPresented: $showsCamera, onDismiss: finishCapture) {
-            CameraPicker { image in
-                pendingImage = image
+            CameraPicker { photo in
+                pendingPhoto = photo
                 showsCamera = false
             }.ignoresSafeArea()
         }
@@ -238,9 +238,8 @@ struct MapScreen: View {
     }
 
     private func finishCapture() {
-        guard let image = pendingImage else { return }
-        pendingImage = nil
-        let takenAt = Date()
+        guard let photo = pendingPhoto else { return }
+        pendingPhoto = nil
         let locally = store.savesLocally
         Task {
             locating = true
@@ -248,7 +247,7 @@ struct MapScreen: View {
             do {
                 let value = try await location.currentLocation()
                 let place = await LocationService.placeName(for: value.coordinate) ?? "見つけた景色"
-                draft = CaptureDraft(image: image, coordinate: value.coordinate, takenAt: takenAt,
+                draft = CaptureDraft(image: photo.image, coordinate: value.coordinate, takenAt: photo.takenAt,
                                      suggestedTitle: place, locally: locally)
             } catch { store.errorMessage = error.localizedDescription }
         }

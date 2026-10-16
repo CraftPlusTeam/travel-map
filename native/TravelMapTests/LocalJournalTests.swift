@@ -57,6 +57,27 @@ final class LocalJournalTests: XCTestCase {
         XCTAssertLessThan(data.count, 10 * 1_024 * 1_024)
     }
 
+    func testCameraUsesOriginalEXIFDateAndTimeZoneBeforeConfirmationTime() throws {
+        let date = try XCTUnwrap(CapturedPhoto.captureDate(from: ["{Exif}": [
+            "DateTimeOriginal": "2026:10:16 09:30:05", "OffsetTimeOriginal": "+09:00"
+        ]], timeZone: TimeZone(secondsFromGMT: 0)!))
+        XCTAssertEqual(date, ISO8601DateFormatter().date(from: "2026-10-16T00:30:05Z"))
+    }
+
+    func testCameraFallsBackToTIFFDateAndRejectsInvalidMetadata() throws {
+        let utc = TimeZone(secondsFromGMT: 0)!
+        let date = try XCTUnwrap(CapturedPhoto.captureDate(from: ["{TIFF}": [
+            "DateTime": "2026:10:16 00:30:05"
+        ]], timeZone: utc))
+        XCTAssertEqual(date, ISO8601DateFormatter().date(from: "2026-10-16T00:30:05Z"))
+        XCTAssertNil(CapturedPhoto.captureDate(from: [:]))
+        XCTAssertNil(CapturedPhoto.captureDate(from: ["{Exif}": ["DateTimeOriginal": "invalid"]]))
+        XCTAssertNil(CapturedPhoto.captureDate(from: ["{Exif}": ["DateTimeOriginal": "2026:02:30 00:00:00"]]))
+        XCTAssertNil(CapturedPhoto.captureDate(from: ["{Exif}": [
+            "DateTimeOriginal": "2026:10:16 00:30:05", "OffsetTimeOriginal": "invalid"
+        ]]))
+    }
+
     private func testImage(size: CGSize = CGSize(width: 64, height: 48)) -> UIImage {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1

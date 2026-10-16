@@ -1,4 +1,5 @@
 import CoreLocation
+import ImageIO
 import SwiftUI
 import UIKit
 
@@ -91,8 +92,30 @@ struct CaptureComposer: View {
     }
 }
 
+struct CapturedPhoto {
+    let image: UIImage
+    let takenAt: Date
+
+    static func captureDate(from metadata: [String: Any], timeZone: TimeZone = .current) -> Date? {
+        let exif = metadata[kCGImagePropertyExifDictionary as String] as? [String: Any]
+        let tiff = metadata[kCGImagePropertyTIFFDictionary as String] as? [String: Any]
+        guard let raw = exif?[kCGImagePropertyExifDateTimeOriginal as String] as? String
+                ?? tiff?[kCGImagePropertyTIFFDateTime as String] as? String,
+              raw.range(of: #"^\d{4}:\d{2}:\d{2} \d{2}:\d{2}:\d{2}$"#, options: .regularExpression) != nil else { return nil }
+        let offset = exif?[kCGImagePropertyExifOffsetTimeOriginal as String] as? String
+        if let offset, offset.range(of: #"^[+-]\d{2}:\d{2}$"#, options: .regularExpression) == nil { return nil }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = timeZone
+        formatter.isLenient = false
+        formatter.dateFormat = "yyyy:MM:dd HH:mm:ss" + (offset == nil ? "" : "XXX")
+        return formatter.date(from: raw + (offset ?? ""))
+    }
+}
+
 struct CameraPicker: UIViewControllerRepresentable {
-    let completion: (UIImage?) -> Void
+    let completion: (CapturedPhoto?) -> Void
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
@@ -106,11 +129,13 @@ struct CameraPicker: UIViewControllerRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(completion: completion) }
 
     final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let completion: (UIImage?) -> Void
-        init(completion: @escaping (UIImage?) -> Void) { self.completion = completion }
+        let completion: (CapturedPhoto?) -> Void
+        init(completion: @escaping (CapturedPhoto?) -> Void) { self.completion = completion }
         func imagePickerController(_ picker: UIImagePickerController,
                                    didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-            completion(info[.originalImage] as? UIImage)
+            guard let image = info[.originalImage] as? UIImage else { completion(nil); return }
+            let metadata = info[.mediaMetadata] as? [String: Any] ?? [:]
+            completion(CapturedPhoto(image: image, takenAt: CapturedPhoto.captureDate(from: metadata) ?? Date()))
         }
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { completion(nil) }
     }
