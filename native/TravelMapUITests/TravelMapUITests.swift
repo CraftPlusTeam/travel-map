@@ -64,7 +64,8 @@ final class TravelMapUITests: XCTestCase {
         XCTAssertTrue(app.buttons["information"].isHittable)
         // Let the system finish its rotation transition before retaining visual evidence.
         Thread.sleep(forTimeInterval: 1)
-        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        // App-element screenshots can crop rotated simulator coordinates incorrectly.
+        let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         screenshot.name = "landscape-dark"
         screenshot.lifetime = .keepAlways
         add(screenshot)
