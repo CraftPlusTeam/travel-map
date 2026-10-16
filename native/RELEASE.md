@@ -74,14 +74,18 @@ Issue / PRにはsource commit、Xcode / SDK、version / build、IPA SHA-256、�
 
 | 項目 | 確認結果 |
 | --- | --- |
-| アプリsource | `65259b6626a590ada9ee8f6c73a8785de7c2de8e` |
+| Archiveのアプリsource | `8ac2d4f6a6c23629cbf15be84d3de491148941f3` |
+| 照合したPR head | `49669a8216fe054a17c48f03b8074023dc03389c` |
 | Xcode / SDK | Xcode 26.3 / iOS 26.2 |
 | version / build | `1.0.0` / `1` |
 | Archive / Export | 両方成功。App Store向けIPAを書き出し済み |
-| IPA SHA-256 | `e04fc1ce249d43a18b42ffa84da6f10d34151642cb5639be4b80a83b49edd0ea` |
-| 検証 | Bundle / Team / version / build、codesign strict、App Storeプロファイル、PrivacyInfo、固定ソース20ファイルのSHA一致 |
+| IPA SHA-256 | `ca74ac9da980cae0521cc2b32db546db24c272ee4512095e1e1f3200fac14345` |
+| 検証 | Bundle / Team / version / build、codesign strict、App Storeプロファイル、PrivacyInfo、配布入力24ファイルのSHA一致 |
+| 通常起動の接続設定 | IPA実体の `SupabaseURL` / `SupabaseAnonKey` は両方空。公開接続は未検証 |
 | App Storeプロファイル期限 | `2027-07-10T11:00:24Z` |
 
-配布物と `verified-ipa.json` はMacの `~/codex-install/travel-map-release-issue3/artifacts/1.0.0-1-65259b6/` に保持しています。署名用の一時Keychainとは別の保存先です。
+PR headとの差分はUIテストのスクリーンショット取得APIだけです。配布するアプリ・Core・接続設定・アイコン・プロジェクトの入力24ファイルは、Archive sourceとPR headでSHA-256が一致しています。
+
+配布物と `verified-ipa.json`、`runtime-configuration.json`、`provenance.json` はMacの `~/codex-install/travel-map-release-issue3/artifacts/1.0.0-1-8ac2d4f/` に保持しています。署名用の一時Keychainとは別の保存先です。
 
 この検証時点では初回App Store Connect appレコードが未登録のため、アップロードは未実施です。TestFlightへの配布は完了していません。登録後は同じIPAのSHAとApp情報を再照合して `upload` → `status` を進めます。最新の配布状況は [Issue #3](https://github.com/CraftPlusTeam/travel-map/issues/3) に記録します。
