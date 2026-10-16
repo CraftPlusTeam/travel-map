@@ -4,7 +4,10 @@
 | --- | --- |
 | Bundle ID / SKU | `com.craftplusteam.travelmap` |
 | Apple Developer Team | `BTYVH3R392`（akihiko ootuka） |
-| App名 / 主言語 | `Travel Map` / 日本語 (`ja`) |
+| App Store Connect登録名 / 主言語 | `CraftPlus Travel Map` / 日本語 (`ja`) |
+| 端末表示名 | `Travel Map` |
+| App Store Connect App ID | `6823587714` |
+| TestFlight管理画面 | [iOSビルド](https://appstoreconnect.apple.com/apps/6823587714/testflight/ios) |
 | 初回version / build | `1.0.0` / `1` |
 | Xcode project / scheme | `TravelMap.xcodeproj` / `TravelMap` |
 
@@ -14,7 +17,7 @@
 
 Bundle IDはTeam `BTYVH3R392` に登録済みです。既存レコードを確認し、必要な場合だけ登録するには `ruby Scripts/release/release.rb register-bundle` を使います。同じ識別子を再登録したり、証明書を失効したりする処理は含みません。
 
-初回Appレコードは[App Store ConnectのWeb画面](https://appstoreconnect.apple.com/apps)で上表の値を使い、iOS・Full Accessとして作成します。[AppleのApps API](https://developer.apple.com/documentation/appstoreconnectapi/apps)は新規appレコードの作成をサポートしていません。[新規アプリ登録手順](https://developer.apple.com/jp/help/app-store-connect/create-an-app-record/add-a-new-app/)を参照してください。
+Appレコードは上表の値で、2026-10-16にiOS・Full Accessとして登録済みです。初回作成は[App Store ConnectのWeb画面](https://appstoreconnect.apple.com/apps)で行います。[AppleのApps API](https://developer.apple.com/documentation/appstoreconnectapi/apps)は新規appレコードの作成をサポートしていません。[新規アプリ登録手順](https://developer.apple.com/jp/help/app-store-connect/create-an-app-record/add-a-new-app/)を参照してください。
 
 Macの権限付きApp Store Connect APIキーを使います。以下の環境変数を、Git外のパーミッション `0600` の設定ファイルまたはprivateラッパーから渡します。値をソース・Issue・ログ・シェルのトレースへ記録しません。
 
@@ -70,12 +73,13 @@ ruby Scripts/release/release.rb status
 
 Issue / PRにはsource commit、Xcode / SDK、version / build、IPA SHA-256、アップロード結果、Apple側の処理状態と未検証事項を記録します。認証ID・JWT・秘密鍵・Cookie・rawな署名診断ファイルは載せません。ツール実行ログは認証値を除去しますが、配布物やrawなXcode診断の公開には使わず、必要な結果だけ抜粋します。
 
-## 2026-10-16 の署名ビルド
+## 2026-10-16 の署名ビルドとTestFlight配布
 
 | 項目 | 確認結果 |
 | --- | --- |
 | Archiveのアプリsource | `8ac2d4f6a6c23629cbf15be84d3de491148941f3` |
 | 照合したPR head | `49669a8216fe054a17c48f03b8074023dc03389c` |
+| 照合したmain | `725aef9c71487cf82ece62b6f8ea2b7208c29549` |
 | Xcode / SDK | Xcode 26.3 / iOS 26.2 |
 | version / build | `1.0.0` / `1` |
 | Archive / Export | 両方成功。App Store向けIPAを書き出し済み |
@@ -83,9 +87,14 @@ Issue / PRにはsource commit、Xcode / SDK、version / build、IPA SHA-256、�
 | 検証 | Bundle / Team / version / build、codesign strict、App Storeプロファイル、PrivacyInfo、配布入力24ファイルのSHA一致 |
 | 通常起動の接続設定 | IPA実体の `SupabaseURL` / `SupabaseAnonKey` は両方空。公開接続は未検証 |
 | App Storeプロファイル期限 | `2027-07-10T11:00:24Z` |
+| アップロード | 成功。同じSHA-256のIPAをAppleが受付済み |
+| TestFlight build ID | `92ab365d-2a52-4ede-a969-01de13a44c4d` |
+| Apple側の処理状態 | `processingState=VALID`、`expired=false`、`internalBuildState=READY_FOR_BETA_TESTING` |
+| 暗号化申告 | `usesNonExemptEncryption=false` |
+| 内部テストグループ | `Internal Testing`（`ef06f1c2-3ae4-4435-9ea4-2012761315a9`）へ対象ビルドの割当をGETで確認済み |
 
-PR headとの差分はUIテストのスクリーンショット取得APIだけです。配布するアプリ・Core・接続設定・アイコン・プロジェクトの入力24ファイルは、Archive sourceとPR headでSHA-256が一致しています。
+PR headとの差分はUIテストのスクリーンショット取得APIだけです。配布するアプリ・Core・接続設定・アイコン・プロジェクトの入力24ファイルは、Archive source・PR head・上記mainでSHA-256が一致しています。
 
 配布物と `verified-ipa.json`、`runtime-configuration.json`、`provenance.json` はMacの `~/codex-install/travel-map-release-issue3/artifacts/1.0.0-1-8ac2d4f/` に保持しています。署名用の一時Keychainとは別の保存先です。
 
-この検証時点では初回App Store Connect appレコードが未登録のため、アップロードは未実施です。TestFlightへの配布は完了していません。登録後は同じIPAのSHAとApp情報を再照合して `upload` → `status` を進めます。最新の配布状況は [Issue #3](https://github.com/CraftPlusTeam/travel-map/issues/3) に記録します。
+`1.0.0 (1)` はTestFlightの内部テスト用ビルドとして準備済みです。2026-10-16 20:27 JSTにowner承認済みの既存アカウント1名へ内部招待を送信し、グループへの所属と `INVITED` 状態を確認しました。招待の承諾と端末へのインストールは未確認です。最新の配布状況は [Issue #3](https://github.com/CraftPlusTeam/travel-map/issues/3) に記録します。
