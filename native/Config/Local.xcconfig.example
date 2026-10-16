@@ -1,0 +1,4 @@
+// Use a hosted project for TestFlight. The slash separator prevents xcconfig comments.
+SUPABASE_URL = https:/$()/YOUR_PROJECT.supabase.co
+SUPABASE_ANON_KEY = YOUR_PUBLISHABLE_OR_ANON_KEY
+// Never put a Supabase service_role or sb_secret key in an iOS app.
