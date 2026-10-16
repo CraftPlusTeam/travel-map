@@ -89,7 +89,7 @@ Issue / PRにはsource commit、Xcode / SDK、version / build、IPA SHA-256、�
 | App Storeプロファイル期限 | `2027-07-10T11:00:24Z` |
 | アップロード | 成功。同じSHA-256のIPAをAppleが受付済み |
 | TestFlight build ID | `92ab365d-2a52-4ede-a969-01de13a44c4d` |
-| Apple側の処理状態 | `processingState=VALID`、`expired=false`、`internalBuildState=READY_FOR_BETA_TESTING` |
+| Apple側の処理状態 | `processingState=VALID`、`expired=false`、`internalBuildState=IN_BETA_TESTING`（内部招待後の最終確認） |
 | 暗号化申告 | `usesNonExemptEncryption=false` |
 | 内部テストグループ | `Internal Testing`（`ef06f1c2-3ae4-4435-9ea4-2012761315a9`）へ対象ビルドの割当をGETで確認済み |
 
