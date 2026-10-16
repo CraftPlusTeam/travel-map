@@ -53,12 +53,18 @@ final class TravelMapUITests: XCTestCase {
 
     func testLandscapeDarkModeMapControls() {
         let app = launch(extra: ["-ui-testing-dark"])
+        // A cold simulator may launch the process before its accessibility tree is ready.
+        guard app.buttons["capture"].waitForExistence(timeout: 30) else {
+            XCTFail("The map did not become ready before rotating the device")
+            return
+        }
         XCUIDevice.shared.orientation = .landscapeLeft
         defer { XCUIDevice.shared.orientation = .portrait }
         let rotated = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            app.frame.width > app.frame.height
+            let frame = app.frame
+            return frame.width > frame.height
         }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [rotated], timeout: 10), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [rotated], timeout: 30), .completed)
         XCTAssertTrue(app.buttons["capture"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.buttons["capture"].isHittable)
         XCTAssertTrue(app.buttons["information"].isHittable)
